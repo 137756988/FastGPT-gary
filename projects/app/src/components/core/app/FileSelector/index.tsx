@@ -23,7 +23,7 @@ import { useSelectFile } from '@/web/common/file/hooks/useSelectFile';
 import { getNanoid } from '@fastgpt/global/common/string/tools';
 import MyDivider from '@fastgpt/web/components/common/MyDivider';
 import MyAvatar from '@fastgpt/web/components/common/Avatar';
-import { z } from 'zod';
+import z from 'zod';
 import { getPresignedChatFileGetUrl, getUploadChatFilePresignedUrl } from '@/web/common/file/api';
 import { useContextSelector } from 'use-context-selector';
 import { getErrText } from '@fastgpt/global/common/error/utils';

@@ -2,15 +2,9 @@ import React from 'react';
 import { Button, ModalFooter, ModalBody } from '@chakra-ui/react';
 import MyModal from '@fastgpt/web/components/common/MyModal';
 import { useTranslation } from 'next-i18next';
-import Markdown from '../Markdown';
-import { useSystemStore } from '@/web/common/system/useSystemStore';
-import { useUserStore } from '@/web/support/user/useUserStore';
 
 const CommunityModal = ({ onClose }: { onClose: () => void }) => {
   const { t } = useTranslation();
-  const { feConfigs } = useSystemStore();
-  const { userInfo } = useUserStore();
-  const isWecomTeam = !!userInfo?.team.isWecomTeam;
 
   return (
     <MyModal
@@ -19,13 +13,7 @@ const CommunityModal = ({ onClose }: { onClose: () => void }) => {
       iconSrc="modal/concat"
       title={t('common:system.Concat us')}
     >
-      <ModalBody textAlign={'center'}>
-        {isWecomTeam ? (
-          '邮箱联系: archer@fastgpt.io'
-        ) : (
-          <Markdown source={feConfigs?.concatMd || ''} />
-        )}
-      </ModalBody>
+      <ModalBody textAlign={'center'}>联系 智算中心算力运营室 周昂果 13985240018</ModalBody>
 
       <ModalFooter>
         <Button variant={'whiteBase'} onClick={onClose}>

@@ -1,0 +1,12 @@
+# PG 向量版基础镜像清单（不含你本地构建的 fastgpt 自定义镜像）
+mongo:5.0.32
+redis:7.2-alpine
+minio/minio:RELEASE.2025-09-07T16-13-09Z
+pgvector/pgvector:0.8.0-pg15
+ghcr.io/labring/fastgpt-sandbox:v4.14.8
+ghcr.io/labring/fastgpt-mcp_server:v4.14.8
+ghcr.io/labring/fastgpt-plugin:v0.5.4
+ghcr.io/labring/aiproxy:v0.3.5
+
+# 可选：如果不需要本地自定义构建，可以直接使用官方 fastgpt 镜像
+# ghcr.io/labring/fastgpt:v4.14.8

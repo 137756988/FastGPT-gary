@@ -19,6 +19,12 @@ yarn-error.log*
 
 # local env files
 .env*.local
+.env
+.env.*
+!.env.template
+!.env.example
+!.env.test.template
+!.env.test.tempalte
 
 # vercel
 .vercel
@@ -43,3 +49,41 @@ projects/app/worker/
 
 # Agent
 .codex
+
+# ===== Local knowledge base / documents (do not upload) =====
+knowledge/
+knowledge_base/
+kb/
+kb_docs/
+local_docs/
+docs-local/
+datasets/
+uploads/
+
+# ===== Offline deployment artifacts & backups =====
+deploy/offline/*.tar
+deploy/offline/*.tgz
+backups/
+backup/
+*.bak
+*.dump
+*.sql
+*.sql.gz
+*.mongo
+
+# ===== Runtime data dirs (compose bind mounts) =====
+mongo/data/
+pg/data/
+redis/data/
+aiproxy_pg/
+fastgpt-minio/
+
+# ===== Local deployment overrides =====
+docker-compose.override.yml
+docker-compose.local.yml
+*.local.yml
+*.override.yml
+
+# ===== Local app config overrides =====
+projects/app/data/config.local.json
+projects/app/data/config.*.local.json

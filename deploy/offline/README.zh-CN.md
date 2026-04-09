@@ -22,6 +22,20 @@
 bash deploy/offline/make_bundle_pg.sh
 ```
 
+如果 Docker Hub 拉取 `node:20.14.0-alpine` 超时，可指定镜像站基础镜像：
+
+> 你当前云主机是 x86，请务必生成 `linux/amd64` 镜像，避免 `exec format error`。
+
+```bash
+bash deploy/offline/make_bundle_pg.sh -n m.daocloud.io/docker.io/library/node:20.14.0-alpine
+```
+
+如需显式指定 pnpm 和 proxy 参数：
+
+```bash
+bash deploy/offline/make_bundle_pg.sh -n m.daocloud.io/docker.io/library/node:20.14.0-alpine -p 9.12.2 -x 1 -m linux/amd64
+```
+
 执行后会生成：
 - `dist/fastgpt-offline-<tag>/`（离线目录）
 - `dist/fastgpt-offline-<tag>.tgz`（可传输压缩包）
@@ -60,6 +74,12 @@ bash scripts/load_and_up.sh
 
 ```bash
 bash deploy/offline/export_fastgpt_incremental.sh
+```
+
+如需镜像站基础镜像：
+
+```bash
+bash deploy/offline/export_fastgpt_incremental.sh "$(date +%Y%m%d-%H%M)" "fastgpt-custom:prod" "dist/fastgpt-only.tar" "m.daocloud.io/docker.io/library/node:20.14.0-alpine"
 ```
 
 2. 将生成的 `dist/fastgpt-only-<tag>.tar` 传到目标机离线目录 `images/fastgpt-only.tar`。

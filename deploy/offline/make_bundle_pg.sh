@@ -5,16 +5,24 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 TAG="$(date +%Y%m%d-%H%M)"
 CUSTOM_IMAGE=""
 OUTPUT_DIR=""
+NODE_IMAGE="node:20.14.0-alpine"
+PNPM_VERSION="9.12.2"
+PROXY_ARG="1"
+PLATFORM="linux/amd64"
 
 usage() {
   cat <<'EOF'
 用法:
-  bash deploy/offline/make_bundle_pg.sh [-t TAG] [-i CUSTOM_IMAGE] [-o OUTPUT_DIR]
+bash deploy/offline/make_bundle_pg.sh [-t TAG] [-i CUSTOM_IMAGE] [-o OUTPUT_DIR] [-n NODE_IMAGE] [-p PNPM_VERSION] [-x PROXY_ARG] [-m PLATFORM]
 
 参数:
   -t TAG           发布标签，默认当前时间，例如 20260325-1530
   -i CUSTOM_IMAGE  自定义 fastgpt 镜像名，默认 fastgpt-custom:<TAG>
   -o OUTPUT_DIR    输出目录，默认 <repo>/dist/fastgpt-offline-<TAG>
+  -n NODE_IMAGE    构建基础镜像，默认 node:20.14.0-alpine
+  -p PNPM_VERSION  pnpm 版本，默认 9.12.2
+  -x PROXY_ARG     Dockerfile 的 proxy 参数，默认 1（启用国内镜像）
+  -m PLATFORM      镜像架构，默认 linux/amd64（云主机是 x86 请保持默认）
 
 说明:
   1) 本脚本会用当前代码构建 fastgpt 自定义镜像。
@@ -23,11 +31,15 @@ usage() {
 EOF
 }
 
-while getopts ":t:i:o:h" opt; do
+while getopts ":t:i:o:n:p:x:m:h" opt; do
   case "${opt}" in
     t) TAG="${OPTARG}" ;;
     i) CUSTOM_IMAGE="${OPTARG}" ;;
     o) OUTPUT_DIR="${OPTARG}" ;;
+    n) NODE_IMAGE="${OPTARG}" ;;
+    p) PNPM_VERSION="${OPTARG}" ;;
+    x) PROXY_ARG="${OPTARG}" ;;
+    m) PLATFORM="${OPTARG}" ;;
     h)
       usage
       exit 0
@@ -69,7 +81,19 @@ BUNDLE_TGZ="${OUTPUT_DIR}.tgz"
 mkdir -p "${OUTPUT_DIR}" "${SCRIPTS_DST_DIR}" "${IMAGES_DIR}"
 
 echo "==> [1/6] 构建自定义 fastgpt 镜像: ${CUSTOM_IMAGE}"
-docker build -f "${ROOT_DIR}/projects/app/Dockerfile" -t "${CUSTOM_IMAGE}" "${ROOT_DIR}"
+echo "    使用基础镜像: ${NODE_IMAGE}"
+echo "    使用 pnpm 版本: ${PNPM_VERSION}"
+echo "    使用 proxy 参数: ${PROXY_ARG}"
+echo "    指定架构: ${PLATFORM}"
+docker buildx build \
+  --platform "${PLATFORM}" \
+  --build-arg "NODE_IMAGE=${NODE_IMAGE}" \
+  --build-arg "PNPM_VERSION=${PNPM_VERSION}" \
+  --build-arg "proxy=${PROXY_ARG}" \
+  -f "${ROOT_DIR}/projects/app/Dockerfile" \
+  -t "${CUSTOM_IMAGE}" \
+  --load \
+  "${ROOT_DIR}"
 
 echo "==> [2/6] 生成 compose/config/scripts"
 sed "s#image: ghcr.io/labring/fastgpt:[^ ]*#image: ${CUSTOM_IMAGE}#" "${COMPOSE_SRC}" > "${COMPOSE_DST}"
@@ -79,10 +103,15 @@ cp "${ROOT_DIR}/deploy/offline/README.zh-CN.md" "${OUTPUT_DIR}/README.zh-CN.md"
 cp "${BASE_IMAGE_LIST_FILE}" "${OUTPUT_DIR}/images.pg.base.txt"
 
 echo "==> [3/6] 拉取基础镜像"
-mapfile -t BASE_IMAGES < <(awk 'NF && $1 !~ /^#/' "${BASE_IMAGE_LIST_FILE}")
+BASE_IMAGES=()
+while IFS= read -r line; do
+  if [[ -n "${line}" && ! "${line}" =~ ^# ]]; then
+    BASE_IMAGES+=("${line}")
+  fi
+done < "${BASE_IMAGE_LIST_FILE}"
 for image in "${BASE_IMAGES[@]}"; do
   echo "pull: ${image}"
-  docker pull "${image}"
+  docker pull --platform "${PLATFORM}" "${image}"
 done
 
 echo "==> [4/6] 保存离线镜像包"

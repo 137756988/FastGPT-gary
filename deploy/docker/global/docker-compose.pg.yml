@@ -21,13 +21,13 @@ x-share-db-config: &x-share-db-config
   STORAGE_PRIVATE_BUCKET: fastgpt-private
   STORAGE_EXTERNAL_ENDPOINT: http://192.168.0.2:9000 # 一个服务器和客户端均可访问到存储桶的地址，可以是固定的宿主机 IP 或者域名，注意不要填写成 127.0.0.1 或者 localhost 等本地回环地址(因为容器里无法使用)
   STORAGE_S3_ENDPOINT: http://fastgpt-minio:9000 # 协议://域名(IP):端口
-  STORAGE_S3_FORCE_PATH_STYLE: true
+  STORAGE_S3_FORCE_PATH_STYLE: "true"
   STORAGE_S3_MAX_RETRIES: 3
 # Log 配置
 x-log-config: &x-log-config
-  LOG_ENABLE_CONSOLE: true
+  LOG_ENABLE_CONSOLE: "true"
   LOG_CONSOLE_LEVEL: debug
-  LOG_ENABLE_OTEL: false
+  LOG_ENABLE_OTEL: "false"
   LOG_OTEL_LEVEL: info
   LOG_OTEL_URL: http://localhost:4318/v1/logs
 
@@ -249,9 +249,9 @@ services:
       # 最大重试次数
       RETRY_TIMES: 3
       # 不需要计费
-      BILLING_ENABLED: false
+      BILLING_ENABLED: "false"
       # 不需要严格检测模型
-      DISABLE_MODEL_CONFIG: true
+      DISABLE_MODEL_CONFIG: "true"
     healthcheck:
       test: ['CMD', 'curl', '-f', 'http://localhost:3000/api/status']
       interval: 5s
@@ -279,4 +279,3 @@ networks:
   fastgpt:
   aiproxy:
   vector:
-

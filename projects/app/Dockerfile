@@ -1,11 +1,14 @@
 # --------- install dependence -----------
-FROM node:20.14.0-alpine AS maindeps
+ARG NODE_IMAGE=node:20.14.0-alpine
+ARG PNPM_VERSION=9.12.2
+FROM ${NODE_IMAGE} AS maindeps
 WORKDIR /app
 
 ARG proxy
+ARG PNPM_VERSION
 
 RUN [ -z "$proxy" ] || sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories
-RUN apk add --no-cache libc6-compat && npm install -g pnpm@9.4.0
+RUN apk add --no-cache libc6-compat && npm install -g pnpm@${PNPM_VERSION}
 
 # copy packages and one project
 COPY pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
@@ -23,11 +26,12 @@ RUN if [ -z "$proxy" ]; then \
     fi
 
 # --------- builder -----------
-FROM node:20.14.0-alpine AS builder
+FROM ${NODE_IMAGE} AS builder
 WORKDIR /app
 
 ARG proxy
 ARG base_url
+ARG PNPM_VERSION
 
 # copy common node_modules and one project node_modules
 COPY package.json pnpm-workspace.yaml .npmrc tsconfig.json .eslintrc.json ./
@@ -39,14 +43,14 @@ COPY --from=maindeps /app/projects/app/node_modules ./projects/app/node_modules
 
 RUN [ -z "$proxy" ] || sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories
 
-RUN apk add --no-cache libc6-compat && npm install -g pnpm@9.4.0
+RUN apk add --no-cache libc6-compat && npm install -g pnpm@${PNPM_VERSION}
 
 ENV NODE_OPTIONS="--max-old-space-size=4096"
 ENV NEXT_PUBLIC_BASE_URL=$base_url
 RUN pnpm --filter=app build
 
 # --------- runner -----------
-FROM node:20.14.0-alpine AS runner
+FROM ${NODE_IMAGE} AS runner
 WORKDIR /app
 
 ARG proxy
